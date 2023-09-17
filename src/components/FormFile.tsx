@@ -71,7 +71,7 @@ function FormFile() {
 
           downloadRef.current = a;
           a.href = url;
-          setPathName(name);
+          setPathName(name + ".xlsx");
           setFileResponse({
             count: res.numberPackages,
             stops: res.stops,
