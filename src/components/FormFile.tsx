@@ -1,7 +1,15 @@
 "use client";
 
 import { exportXlsx } from "@/services/exportXlsx";
-import { Download, FileText, Info, Trash, Upload } from "lucide-react";
+import {
+  Download,
+  FileText,
+  Info,
+  Package,
+  TrafficCone,
+  Trash,
+  Upload,
+} from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "./Button";
@@ -14,19 +22,26 @@ interface IFile {
   type: string;
 }
 
+interface IFileResponse {
+  stops: number;
+  count: number;
+  link: string;
+}
+
 function FormFile() {
+  const downloadRef = useRef<HTMLAnchorElement | null>(null);
   const [files, setFiles] = useState<IFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [url, setUrl] = useState("");
   const [pathname, setPathName] = useState("");
-  const downloadRef = useRef<HTMLAnchorElement | null>(null);
+  const [fileResponse, setFileResponse] = useState<IFileResponse>(
+    {} as IFileResponse
+  );
 
   const { handleSubmit, setValue } = useForm();
 
   const resetFile = useCallback(() => {
     setValue("file", []);
     setFiles([]);
-    setUrl("");
     setPathName("");
   }, [setValue]);
 
@@ -56,9 +71,14 @@ function FormFile() {
 
           downloadRef.current = a;
           a.href = url;
+          setPathName(name);
+          setFileResponse({
+            count: res.numberPackages,
+            stops: res.stops,
+            link: url,
+          });
           setIsLoading(false);
-          setUrl(url);
-          setPathName(name + ".xlsx");
+
           // window.URL.revokeObjectURL(url);
         }
       })
@@ -76,7 +96,7 @@ function FormFile() {
           <div className="flex pt-2 gap-1">
             <Info className="stroke-purple-600 h-5 w-5" />
             <p className="text-xs mt-[2px]">
-              Certifique se o arquivo selecionado, é mesmo o arquivo com os
+              Certifique-se o arquivo selecionado, é mesmo o arquivo com os
               endereços das rotas.
             </p>
           </div>
@@ -97,7 +117,10 @@ function FormFile() {
                     <FileText />
                     <p>{name}</p>
                   </div>
-                  <Trash onClick={() => setFiles([])} />
+                  <Trash
+                    className="h-5 w-5 cursor-pointer"
+                    onClick={() => setFiles([])}
+                  />
                 </li>
               );
             })}
@@ -105,8 +128,21 @@ function FormFile() {
         </div>
       )}
 
+      {fileResponse.link && (
+        <div className="flex mx-4 gap-4">
+          <div className="flex gap-2">
+            <TrafficCone />
+            <p>{fileResponse.stops}</p>
+          </div>
+          <div className="flex gap-2">
+            <Package />
+            <p>{fileResponse.count}</p>
+          </div>
+        </div>
+      )}
+
       <div className="p-4 w-full flex gap-4">
-        {!url ? (
+        {!fileResponse.link ? (
           <Button
             type="submit"
             disabled={!files[0]}
@@ -126,7 +162,12 @@ function FormFile() {
             >
               Novo Consulta
             </Button>
-            <a ref={downloadRef} href={url} download={pathname} target="_blank">
+            <a
+              ref={downloadRef}
+              href={fileResponse.link}
+              download={pathname}
+              target="_blank"
+            >
               <Button type="button" iconLeft={<Download className="h-5 w-5" />}>
                 Download
               </Button>
