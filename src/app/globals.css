@@ -9,3 +9,7 @@ h3,
 div {
   @apply text-white;
 }
+
+.button-default {
+  @apply bg-purple-700 cursor-pointer disabled:cursor-not-allowed hover:bg-purple-800 disabled:bg-purple-600;
+}
