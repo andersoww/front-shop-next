@@ -43,6 +43,7 @@ function FormFile() {
     setValue("file", []);
     setFiles([]);
     setPathName("");
+    setFileResponse({ count: 0, link: "", stops: 0 });
   }, [setValue]);
 
   const onDrop = useCallback(

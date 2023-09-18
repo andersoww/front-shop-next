@@ -20,12 +20,12 @@ function MyDropzone({ onDrop }: IDropzone) {
   return (
     <div
       {...getRootProps()}
-      className="p-4 border-2 border-dashed border-[#2C2C2F] rounded-lg cursor-pointer flex justify-center gap-x-2 h-[200px] items-center"
+      className="p-4 border-2 border-dashed border-[#2C2C2F] rounded-lg cursor-pointer flex justify-center gap-x-2 h-[200px] items-center flex-col"
     >
-      <UploadCloud />
+      <UploadCloud className="h-8 w-8" />
 
       <input {...getInputProps()} />
-      <p>Selecione para importar as rotas.</p>
+      <p className="text-sm">Selecione para importar as rotas.</p>
     </div>
   );
 }
