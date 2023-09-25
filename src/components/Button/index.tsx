@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import { ButtonHTMLAttributes, ReactElement, ReactNode } from "react";
 
 interface IButton extends ButtonHTMLAttributes<HTMLButtonElement> {
-  children: ReactNode;
+  children?: ReactNode;
   variant?: any;
   isLoading?: boolean;
   loadingText?: string;

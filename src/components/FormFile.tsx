@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "./Button";
 import { Divider } from "./Divider";
 import { MyDropzone } from "./Dropzone";
+import { ToggleInput } from "@/components/ToggleInput";
 
 interface IFile {
   path: string;
@@ -32,6 +33,7 @@ function FormFile() {
   const downloadRef = useRef<HTMLAnchorElement | null>(null);
   const [files, setFiles] = useState<IFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [verifyToggle, setVerifyToggle] = useState(false);
   const [pathname, setPathName] = useState("");
   const [fileResponse, setFileResponse] = useState<IFileResponse>(
     {} as IFileResponse
@@ -55,36 +57,40 @@ function FormFile() {
     [setValue]
   );
 
-  const onSubmit = useCallback(async (data: any) => {
-    const name = data.file.path.replace(".pdf", "");
+  const onSubmit = useCallback(
+    async (data: any) => {
+      setIsLoading(true);
 
-    setIsLoading(true);
-    const body = new FormData();
-    body.append("file", data.file);
-    await exportXlsx(body)
-      .then((res) => {
-        if (res.res) {
-          const buffer = Buffer.from(res.res);
-          const blob = new Blob([buffer]);
+      const name = data.file.path.replace(".pdf", "");
+      const body = new FormData();
 
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
+      body.append("file", data.file);
+      body.append("verify", String(verifyToggle));
 
-          downloadRef.current = a;
-          a.href = url;
-          setPathName(name + ".xlsx");
-          setFileResponse({
-            count: res.numberPackages,
-            stops: res.stops,
-            link: url,
-          });
-          setIsLoading(false);
+      await exportXlsx(body)
+        .then((res) => {
+          if (res.res) {
+            const buffer = Buffer.from(res.res);
+            const blob = new Blob([buffer]);
 
-          // window.URL.revokeObjectURL(url);
-        }
-      })
-      .catch((err) => err.response);
-  }, []);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+
+            downloadRef.current = a;
+            a.href = url;
+            setPathName(name + ".xlsx");
+            setFileResponse({
+              count: res.numberPackages,
+              stops: res.stops,
+              link: url,
+            });
+            setIsLoading(false);
+          }
+        })
+        .catch((err) => err.response);
+    },
+    [verifyToggle]
+  );
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -105,23 +111,44 @@ function FormFile() {
       </div>
 
       {files[0] && (
-        <div>
-          <h1 className="px-4 py-2 font-semibold">Seus arquivos</h1>
+        <div className="flex flex-col">
+          <div className="px-4 py-2 flex justify-between">
+            <h1 className=" font-semibold">Seus arquivos</h1>
+          </div>
           <Divider />
           <ol className="p-4">
             {files.map((item, index) => {
               const name = item.path.replace(".pdf", "");
 
               return (
-                <li key={index} className="flex w-full justify-between">
-                  <div className="flex gap-2">
-                    <FileText />
-                    <p>{name}</p>
+                <li
+                  key={index}
+                  className="flex flex-col w-full justify-between gap-4"
+                >
+                  <div className="flex w-full justify-between">
+                    <div className="flex gap-2">
+                      <FileText className="h-5 w-5" />
+                      <p className="text-sm">{name}</p>
+                    </div>
+
+                    <ToggleInput.Label
+                      className="justify-center"
+                      description="Verificar ortografia"
+                    >
+                      <ToggleInput.Root className="items-end">
+                        <ToggleInput.Input
+                          defaultChecked={verifyToggle}
+                          onChange={() =>
+                            setVerifyToggle((state) => {
+                              if (!state) {
+                                return true;
+                              } else return false;
+                            })
+                          }
+                        />
+                      </ToggleInput.Root>
+                    </ToggleInput.Label>
                   </div>
-                  <Trash
-                    className="h-5 w-5 cursor-pointer"
-                    onClick={() => setFiles([])}
-                  />
                 </li>
               );
             })}
@@ -144,15 +171,30 @@ function FormFile() {
 
       <div className="p-4 w-full flex gap-4">
         {!fileResponse.link ? (
-          <Button
-            type="submit"
-            disabled={!files[0]}
-            isLoading={isLoading}
-            loadingText="Processando"
-            iconLeft={<Upload className="w-4 h-4" />}
-          >
-            Processar
-          </Button>
+          <div className="flex w-full gap-2">
+            <Button
+              type="submit"
+              disabled={!files[0]}
+              isLoading={isLoading}
+              loadingText="Processando"
+              iconLeft={<Upload className="w-4 h-4" />}
+            >
+              Processar
+            </Button>
+            {files[0] && (
+              <div>
+                <Button
+                  disabled={isLoading}
+                  iconLeft={
+                    <Trash
+                      className="h-5 w-5 cursor-pointer"
+                      onClick={() => setFiles([])}
+                    />
+                  }
+                />
+              </div>
+            )}
+          </div>
         ) : (
           <div className="flex w-full justify-end gap-2">
             <Button
