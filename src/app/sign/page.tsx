@@ -15,10 +15,8 @@ export default function Sign() {
           <Text size="md">Informe seus dados para acessar a plataforma.</Text>
         </div>
         <Divider />
-
         <SignForm />
         <Divider />
-
         <div className="flex justify-center w-full p-4 hover:underline">
           <Text>Esqueci minha senha</Text>
         </div>

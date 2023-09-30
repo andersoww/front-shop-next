@@ -56,3 +56,16 @@ div {
 .input {
   @apply w-full rounded bg-transparent px-1 py-2 text-xs text-zinc-900 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed dark:bg-transparent dark:text-zinc-100 dark:placeholder:text-zinc-400;
 }
+
+.toast-success {
+  @apply border-[#70D12B] bg-[#d2f4ba] text-zinc-700;
+}
+.toast-info {
+  @apply border-[#416DFC] bg-[#bde3f8];
+}
+.toast-error {
+  @apply border-[#FF515D] bg-[#fed6d7];
+}
+.toast-warning {
+  @apply border-[#dd6a1f] bg-[#feebc8];
+}

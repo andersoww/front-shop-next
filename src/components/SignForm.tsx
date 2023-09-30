@@ -10,6 +10,7 @@ import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { setCookie } from "cookies-next";
+import { useToast } from "@/context/ToastContext";
 
 const schema = z.object({
   email: z.string().nonempty("E-mail é obrigatório"),
@@ -22,6 +23,7 @@ function SignForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { push } = useRouter();
+  const { addToast } = useToast();
 
   const {
     handleSubmit,
@@ -37,12 +39,23 @@ function SignForm() {
 
       if (response.data && response.result === "success") {
         setCookie("token", response.data.token);
+        addToast({
+          title: "Sucesso",
+          message: response.message,
+          type: "success",
+        });
         push("/import");
+      } else {
+        addToast({
+          title: "Error",
+          message: response.message,
+          type: "error",
+        });
       }
 
       setIsLoading(false);
     },
-    [push]
+    [addToast, push]
   );
 
   return (
