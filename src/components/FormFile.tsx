@@ -1,52 +1,106 @@
 "use client";
 
+import { Text } from "@/components/Text";
+import { TextInput } from "@/components/TextInput";
+import { useToast } from "@/context/ToastContext";
 import { exportXlsx } from "@/services/exportXlsx";
+import { importAddress } from "@/services/importAddress";
+import { searchRouteAddresses } from "@/services/searchAddresses";
 import {
+  Chip,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Tab,
+  Tabs,
+  useDisclosure,
+} from "@nextui-org/react";
+import clsx from "clsx";
+import {
+  ArrowLeft,
   Download,
-  FileText,
   Info,
+  MapPin,
   Package,
-  TrafficCone,
-  Trash,
+  PackageSearch,
+  Search,
   Upload,
 } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "./Button";
 import { Divider } from "./Divider";
 import { MyDropzone } from "./Dropzone";
-import { ToggleInput } from "@/components/ToggleInput";
+import Link from "next/link";
 
-interface IFile {
+export interface IFile {
   path: string;
   size: number;
   type: string;
 }
+interface IAddressImport {
+  address: string;
+  neighborhood: string;
+  route: string;
+  package: string;
+  cep: string;
+  city: string;
+  referer: string;
+  long: string;
+  lat: string;
+}
 
-interface IFileResponse {
+interface ImportAddressRouteProps {
+  list: IAddressImport[];
   stops: number;
-  count: number;
-  link: string;
+  packages: number;
+  countSuccess?: number;
+  countFailures?: number;
+}
+
+function BoxText({
+  title,
+  description,
+  className,
+}: {
+  title: string;
+  description: string;
+  className?: string;
+}) {
+  return (
+    <div className={clsx(className, "flex gap-1")}>
+      <p className="text-sm font-medium">{title}</p>
+      <p className="text-sm font-light">{description}</p>
+    </div>
+  );
 }
 
 function FormFile() {
-  const downloadRef = useRef<HTMLAnchorElement | null>(null);
   const [files, setFiles] = useState<IFile[]>([]);
+  const [address, setAddress] = useState<ImportAddressRouteProps>({
+    list: [
+      {
+        address: "7 de Setembro,200",
+        cep: "14640-000",
+        city: "Morro Agudo",
+        route: "Rota 42",
+      },
+    ],
+    packages: 100,
+    stops: 70,
+  } as ImportAddressRouteProps);
+  const [show, setShow] = useState(false);
+  const [disabledSearch, setDisabledSearch] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [verifyToggle, setVerifyToggle] = useState(false);
-  const [pathname, setPathName] = useState("");
-  const [fileResponse, setFileResponse] = useState<IFileResponse>(
-    {} as IFileResponse
-  );
+  const [isLoadingSearch, setIsLoadingSearch] = useState(false);
+  const [isLoadingDownload, setIsLoadingDownload] = useState(false);
+  const downloadRef = useRef<HTMLAnchorElement | null>(null);
 
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { addToast } = useToast();
   const { handleSubmit, setValue } = useForm();
-
-  const resetFile = useCallback(() => {
-    setValue("file", []);
-    setFiles([]);
-    setPathName("");
-    setFileResponse({ count: 0, link: "", stops: 0 });
-  }, [setValue]);
 
   const onDrop = useCallback(
     (acceptedFiles: any[]) => {
@@ -61,164 +115,316 @@ function FormFile() {
     async (data: any) => {
       setIsLoading(true);
 
-      const name = data.file.path.replace(".pdf", "");
       const body = new FormData();
-
       body.append("file", data.file);
-      body.append("verify", String(verifyToggle));
 
-      await exportXlsx(body)
-        .then((res) => {
-          if (res.res) {
-            const buffer = Buffer.from(res.res);
-            const blob = new Blob([buffer]);
+      const response = await importAddress(body);
 
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-
-            downloadRef.current = a;
-            a.href = url;
-            setPathName(name + ".xlsx");
-            setFileResponse({
-              count: res.numberPackages,
-              stops: res.stops,
-              link: url,
-            });
-            setIsLoading(false);
-          }
-        })
-        .catch((err) => err.response);
+      if (response.data && response.result === "success") {
+        addToast({
+          title: "Sucesso",
+          message: response.message,
+          type: "success",
+        });
+        setShow(true);
+        setAddress(response.data);
+        onOpenChange();
+      } else {
+        addToast({
+          title: "Error",
+          message: response.message,
+          type: "error",
+        });
+      }
+      setIsLoading(false);
     },
-    [verifyToggle]
+    [addToast, onOpenChange]
   );
 
+  const searchAddresses = useCallback(
+    async (address: ImportAddressRouteProps) => {
+      setIsLoadingSearch(true);
+      setDisabledSearch(true);
+
+      const newData = {
+        routes: address.list,
+      };
+
+      const response = await searchRouteAddresses(newData);
+
+      if (response.data && response.result === "success") {
+        addToast({
+          title: "Sucesso",
+          message: response.message,
+          type: "success",
+        });
+        setDisabledSearch(false);
+        setAddress((state) => {
+          return {
+            ...state,
+            list: response.data.list,
+            countSuccess: response.data.success,
+            countFailures: response.data.failures,
+          };
+        });
+      } else {
+        addToast({
+          title: "Error",
+          message: response.message,
+          type: "error",
+        });
+      }
+
+      setIsLoadingSearch(false);
+    },
+    [addToast]
+  );
+
+  const downloadXlsx = useCallback(async (address: ImportAddressRouteProps) => {
+    setIsLoadingDownload(true);
+    const response = await exportXlsx({ routes: address.list });
+
+    if (response.data) {
+      const buffer = Buffer.from(response.data.data);
+      const blob = new Blob([buffer]);
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+
+      downloadRef.current = a;
+      a.href = url;
+      a.download = `${address.list[0].route}.xlsx`;
+      a.click();
+    }
+
+    setIsLoadingDownload(false);
+  }, []);
+
+  useEffect(() => {
+    onOpen();
+  }, [onOpen]);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Divider />
+    <div className="flex flex-col gap-4 w-full p-4 h-full relative">
+      {show && (
+        <div className="flex flex-col gap-4 h-full">
+          <div className="flex w-full justify-between">
+            <h1 className="text-xl font-bold">{address.list[0].route}</h1>
 
-      <div className="flex flex-col m-4 gap-4">
-        <div>
-          <MyDropzone setValue={setValue} onDrop={onDrop} />
-
-          <div className="flex pt-2 gap-1">
-            <Info className="stroke-purple-600 h-5 w-5" />
-            <p className="text-xs mt-[2px]">
-              Certifique-se o arquivo selecionado, é mesmo o arquivo com os
-              endereços das rotas.
-            </p>
+            <Link href={{ pathname: "/sign" }}>
+              <ArrowLeft />
+            </Link>
           </div>
-        </div>
-      </div>
 
-      {files[0] && (
-        <div className="flex flex-col">
-          <div className="px-4 py-2 flex justify-between">
-            <h1 className=" font-semibold">Seus arquivos</h1>
+          <div className="flex flex-col w-full gap-1">
+            <div className="flex gap-4 justify-center">
+              <Chip
+                startContent={<MapPin className="w-5 h-5" />}
+                variant="flat"
+                color="primary"
+                size="lg"
+              >
+                <p className="text-sm">{address.stops}</p>
+              </Chip>
+
+              <Chip
+                startContent={<Package className="w-5 h-5" />}
+                variant="flat"
+                color="warning"
+              >
+                <p className="text-sm">{address.packages}</p>
+              </Chip>
+            </div>
+            <div className="w-full flex items-center justify-center">
+              <p>
+                {address.list[0].city} - {address.list[0].cep}
+              </p>
+            </div>
           </div>
+
           <Divider />
-          <ol className="p-4">
-            {files.map((item, index) => {
-              const name = item.path.replace(".pdf", "");
 
-              return (
-                <li
-                  key={index}
-                  className="flex flex-col w-full justify-between gap-4"
-                >
-                  <div className="flex w-full justify-between">
-                    <div className="flex gap-2">
-                      <FileText className="h-5 w-5" />
-                      <p className="text-sm">{name}</p>
-                    </div>
+          <div className="flex w-full flex-col gap-2 mb-12">
+            <TextInput.Root>
+              <TextInput.Content>
+                <TextInput.Icon>
+                  <PackageSearch />
+                </TextInput.Icon>
+                <TextInput.Input placeholder="Procurar um endereço..." />
+              </TextInput.Content>
+            </TextInput.Root>
 
-                    <ToggleInput.Label
-                      className="justify-center"
-                      description="Verificar ortografia"
-                    >
-                      <ToggleInput.Root className="items-end">
-                        <ToggleInput.Input
-                          defaultChecked={verifyToggle}
-                          onChange={() =>
-                            setVerifyToggle((state) => {
-                              if (!state) {
-                                return true;
-                              } else return false;
-                            })
-                          }
-                        />
-                      </ToggleInput.Root>
-                    </ToggleInput.Label>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      )}
-
-      {fileResponse.link && (
-        <div className="flex mx-4 gap-4">
-          <div className="flex gap-2">
-            <TrafficCone />
-            <p>{fileResponse.stops}</p>
-          </div>
-          <div className="flex gap-2">
-            <Package />
-            <p>{fileResponse.count}</p>
-          </div>
-        </div>
-      )}
-
-      <div className="p-4 w-full flex gap-4">
-        {!fileResponse.link ? (
-          <div className="flex w-full gap-2">
-            <Button
-              type="submit"
-              disabled={!files[0]}
-              isLoading={isLoading}
-              loadingText="Processando"
-              iconLeft={<Upload className="w-4 h-4" />}
+            <Tabs
+              aria-label="Options"
+              color="primary"
+              variant="light"
+              disabledKeys={!disabledSearch ? [] : ["tab2", "tab3"]}
+              className="flex justify-center"
             >
-              Processar
-            </Button>
-            {files[0] && (
-              <div>
-                <Button
-                  disabled={isLoading}
-                  iconLeft={
-                    <Trash
-                      className="h-5 w-5 cursor-pointer"
-                      onClick={() => setFiles([])}
-                    />
-                  }
-                />
-              </div>
-            )}
+              <Tab
+                title={
+                  <div className="flex items-center space-x-2">
+                    <Text>{address.list.length}</Text>
+                    <span>Todos</span>
+                  </div>
+                }
+              >
+                <div className="flex flex-col gap-4 h-[330px] overflow-auto">
+                  {address.list.map((add, index) => {
+                    return (
+                      <div
+                        className="card-theme p-4 flex flex-col gap-1"
+                        key={index}
+                      >
+                        <BoxText
+                          title="Endereço"
+                          description={add.address}
+                          className="flex-col"
+                        />
+                        <BoxText title="Pacote:" description={add.package} />
+                      </div>
+                    );
+                  })}
+                </div>
+              </Tab>
+              <Tab
+                title={
+                  <div className="flex items-center space-x-2">
+                    <Text>{address.countSuccess}</Text>
+                    <span>Sucesso</span>
+                  </div>
+                }
+                key="tab2"
+                disabled={disabledSearch}
+              >
+                <div className="flex flex-col gap-4 h-[330px] overflow-auto">
+                  {address.list
+                    .filter((item) => item.lat !== "")
+                    .map((add, index) => {
+                      return (
+                        <div
+                          className="card-theme p-4 flex flex-col gap-1"
+                          key={index}
+                        >
+                          <BoxText
+                            title="Endereço"
+                            description={add.address}
+                            className="flex-col"
+                          />
+                          <BoxText title="Pacote:" description={add.package} />
+                        </div>
+                      );
+                    })}
+                </div>
+              </Tab>
+              <Tab
+                title={
+                  <div className="flex items-center space-x-2">
+                    <Text>{address.countFailures}</Text>
+                    <span>Falha</span>
+                  </div>
+                }
+                key="tab3"
+                disabled={disabledSearch}
+              >
+                <div className="flex flex-col gap-4 h-[330px] overflow-auto">
+                  {address.list
+                    .filter((item) => !item.lat)
+                    .map((add, index) => {
+                      return (
+                        <div
+                          className="card-theme p-4 flex flex-col gap-1"
+                          key={index}
+                        >
+                          <BoxText
+                            title="Endereço"
+                            description={add.address}
+                            className="flex-col"
+                          />
+                          <BoxText title="Pacote:" description={add.package} />
+                        </div>
+                      );
+                    })}
+                </div>
+              </Tab>
+            </Tabs>
           </div>
-        ) : (
-          <div className="flex w-full justify-end gap-2">
+
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full p-4 flex gap-4">
+            <Button
+              iconLeft={<Search className="h-4 w-4" />}
+              onClick={() => searchAddresses(address)}
+              isLoading={isLoadingSearch}
+              disabled={isLoadingSearch}
+            >
+              Buscar
+            </Button>
+
             <Button
               type="button"
-              onClick={() => {
-                resetFile();
-              }}
+              variant={disabledSearch ? "clear" : "default"}
+              iconLeft={<Download className="h-5 w-5" />}
+              isLoading={isLoadingDownload}
+              disabled={disabledSearch}
+              onClick={() => downloadXlsx(address)}
             >
-              Novo Consulta
+              Download
             </Button>
-            <a
-              ref={downloadRef}
-              href={fileResponse.link}
-              download={pathname}
-              target="_blank"
-            >
-              <Button type="button" iconLeft={<Download className="h-5 w-5" />}>
-                Download
-              </Button>
-            </a>
           </div>
-        )}
-      </div>
-    </form>
+        </div>
+      )}
+
+      <Modal isOpen={isOpen} onOpenChange={() => {}} className="card-theme">
+        <ModalContent>
+          {(onClose) => (
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <ModalHeader className="flex flex-col gap-1">
+                <h2 className="text-md font-bold text-white">
+                  Modo Importação
+                </h2>
+                <p className="text-xs font-light">
+                  Escolha o arquivo das rotas, para carregar os endereços.
+                </p>
+              </ModalHeader>
+              <Divider />
+
+              <ModalBody className="flex flex-col gap-4">
+                <MyDropzone setValue={setValue} onDrop={onDrop} files={files} />
+
+                <div className="flex pt-2 gap-1">
+                  <Info className="stroke-purple-600 h-5 w-5" />
+                  <p className="text-xs mt-[2px]">
+                    Certifique-se o arquivo selecionado, é mesmo o arquivo com
+                    os endereços das rotas.
+                  </p>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <div className="flex w-full gap-2">
+                  <Button
+                    variant="clear"
+                    type="button"
+                    iconLeft={<ArrowLeft className="h-4 w-4" />}
+                    onClick={onClose}
+                  >
+                    Voltar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={!files[0]}
+                    isLoading={isLoading}
+                    loadingText="Processando"
+                    iconLeft={<Upload className="w-4 h-4" />}
+                  >
+                    Processar
+                  </Button>
+                </div>
+              </ModalFooter>
+            </form>
+          )}
+        </ModalContent>
+      </Modal>
+    </div>
   );
 }
 

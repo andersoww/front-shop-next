@@ -12,8 +12,6 @@ async function isValidAuth(req: NextRequest): Promise<boolean> {
     .then((res) => res.json())
     .catch((err) => err.response);
 
-  console.log(getToken);
-
   if (!token || getToken?.statusCode === 400) {
     return false;
   }

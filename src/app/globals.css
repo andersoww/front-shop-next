@@ -46,7 +46,7 @@ div {
 }
 
 .card-theme {
-  @apply bg-[#252428] shadow-lg rounded-lg border border-[#2C2C2F] 
+  @apply bg-[#252428] shadow-lg rounded-lg border border-[#2C2C2F];
 }
 
 .input-theme {
@@ -54,7 +54,7 @@ div {
 }
 
 .input {
-  @apply w-full rounded bg-transparent px-1 py-2 text-xs text-zinc-900 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed dark:bg-transparent dark:text-zinc-100 dark:placeholder:text-zinc-400;
+  @apply w-full rounded bg-transparent px-1 py-2 text-medium text-zinc-900 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed dark:bg-transparent dark:text-zinc-100 dark:placeholder:text-zinc-400;
 }
 
 .toast-success {

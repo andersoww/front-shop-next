@@ -18,7 +18,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-[#1D1D1F]`}>
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      />
+      <body
+        className={`${inter.className} bg-[#1D1D1F] min-h-screen overflow-hidden`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

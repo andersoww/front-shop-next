@@ -3,7 +3,7 @@ import { useMapContext } from "@/context/MapContext";
 // import { MapDetailsGeolocation } from "@components/page/dashboard/server/MapDetailsGeolocation";
 
 import mapboxgl from "mapbox-gl";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
@@ -18,12 +18,6 @@ export function Map() {
     latitude: 0,
     longitude: 0,
   });
-
-  useEffect(() => {
-    if (mapState) {
-    }
-    console.log(mapState);
-  }, [mapState]);
 
   useEffect(() => {
     if (mapState)

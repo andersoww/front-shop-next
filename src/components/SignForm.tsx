@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { setCookie } from "cookies-next";
 import { useToast } from "@/context/ToastContext";
+import api from "@/services/ApiClient";
 
 const schema = z.object({
   email: z.string().nonempty("E-mail é obrigatório"),
@@ -22,7 +23,7 @@ type SignFormSchema = z.infer<typeof schema>;
 function SignForm() {
   const [isLoading, setIsLoading] = useState(false);
 
-  const { push } = useRouter();
+  const { push, refresh } = useRouter();
   const { addToast } = useToast();
 
   const {
@@ -44,6 +45,11 @@ function SignForm() {
           message: response.message,
           type: "success",
         });
+        if (response.data.token) {
+          api.defaults.headers.common = {
+            Authorization: `bearer ${response.data.token}`,
+          };
+        }
         push("/import");
       } else {
         addToast({
@@ -67,7 +73,7 @@ function SignForm() {
         <TextInput.Root>
           <TextInput.Content>
             <TextInput.Icon>
-              <User className="w-4 h-4" />
+              <User className="w-5 h-5" />
             </TextInput.Icon>
             <TextInput.Input
               autoComplete="off"
@@ -87,7 +93,7 @@ function SignForm() {
         <TextInput.Root>
           <TextInput.Content>
             <TextInput.Icon>
-              <KeyRound className="w-4 h-4" />
+              <KeyRound className="w-5 h-5" />
             </TextInput.Icon>
 
             <TextInput.Input
