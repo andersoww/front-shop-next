@@ -21,19 +21,21 @@ import clsx from "clsx";
 import {
   ArrowLeft,
   Download,
+  Home,
   Info,
   MapPin,
   Package,
+  PackagePlus,
   PackageSearch,
   Search,
   Upload,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "./Button";
 import { Divider } from "./Divider";
 import { MyDropzone } from "./Dropzone";
-import Link from "next/link";
 
 export interface IFile {
   path: string;
@@ -64,15 +66,44 @@ function BoxText({
   title,
   description,
   className,
+  icon,
 }: {
-  title: string;
+  title?: string;
   description: string;
   className?: string;
+  icon: ReactNode;
 }) {
   return (
-    <div className={clsx(className, "flex gap-1")}>
-      <p className="text-sm font-medium">{title}</p>
+    <div className={clsx(className, "flex gap-3 items-center")}>
+      {icon}
       <p className="text-sm font-light">{description}</p>
+    </div>
+  );
+}
+
+function Card({ add }: { add: IAddressImport }) {
+  return (
+    <div className="card-theme p-4 flex flex-col gap-2 relative h-[400px]">
+      <BoxText
+        icon={<MapPin className="w-4 h-4 " />}
+        description={add.address}
+      />
+      <BoxText
+        title="Bairro:"
+        description={add.neighborhood}
+        icon={<Home className="w-4 h-4" />}
+      />
+      <BoxText
+        title="Pacote:"
+        description={add.package}
+        icon={<PackagePlus className="w-5 h-5" />}
+        className="bottom-0 absolute right-0 bg-purple-600 p-2 rounded-lg [&>p]:text-lg [&>p]:font-medium"
+      />
+
+      <BoxText
+        description={add.referer || "Sem conteúdo"}
+        icon={<Info className="w-4 h-4" />}
+      />
     </div>
   );
 }
@@ -269,21 +300,9 @@ function FormFile() {
                   </div>
                 }
               >
-                <div className="flex flex-col gap-4 h-[330px] overflow-auto">
+                <div className="flex flex-col gap-4 h-[300px] overflow-auto">
                   {address.list.map((add, index) => {
-                    return (
-                      <div
-                        className="card-theme p-4 flex flex-col gap-1"
-                        key={index}
-                      >
-                        <BoxText
-                          title="Endereço"
-                          description={add.address}
-                          className="flex-col"
-                        />
-                        <BoxText title="Pacote:" description={add.package} />
-                      </div>
-                    );
+                    return <Card key={index} add={add} />;
                   })}
                 </div>
               </Tab>
@@ -299,21 +318,9 @@ function FormFile() {
               >
                 <div className="flex flex-col gap-4 h-[330px] overflow-auto">
                   {address.list
-                    .filter((item) => item.lat !== "")
+                    .filter((item) => item.lat && item.long)
                     .map((add, index) => {
-                      return (
-                        <div
-                          className="card-theme p-4 flex flex-col gap-1"
-                          key={index}
-                        >
-                          <BoxText
-                            title="Endereço"
-                            description={add.address}
-                            className="flex-col"
-                          />
-                          <BoxText title="Pacote:" description={add.package} />
-                        </div>
-                      );
+                      return <Card key={index} add={add} />;
                     })}
                 </div>
               </Tab>
@@ -331,19 +338,7 @@ function FormFile() {
                   {address.list
                     .filter((item) => !item.lat)
                     .map((add, index) => {
-                      return (
-                        <div
-                          className="card-theme p-4 flex flex-col gap-1"
-                          key={index}
-                        >
-                          <BoxText
-                            title="Endereço"
-                            description={add.address}
-                            className="flex-col"
-                          />
-                          <BoxText title="Pacote:" description={add.package} />
-                        </div>
-                      );
+                      return <Card key={index} add={add} />;
                     })}
                 </div>
               </Tab>
