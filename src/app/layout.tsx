@@ -1,16 +1,16 @@
 import { Providers } from "@/app/Providers";
+import clsx from "clsx";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import clsx from "clsx";
-import { getCookie } from "cookies-next";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Route-Import",
   description: "",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
