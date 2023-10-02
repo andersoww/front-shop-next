@@ -242,7 +242,7 @@ function FormFile() {
           <div className="flex w-full justify-between">
             <h1 className="text-xl font-bold">{address.list[0].route}</h1>
 
-            <Link href={{ pathname: "/sign" }}>
+            <Link href={{ pathname: "/import" }}>
               <ArrowLeft />
             </Link>
           </div>
