@@ -7,11 +7,11 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Route-Import",
-  description: "",
-  manifest: "/manifest.json",
-};
+// export const metadata: Metadata = {
+//   title: "Route-Import",
+//   description: "",
+//   manifest: "/manifest.json",
+// };
 
 export default function RootLayout({
   children,
@@ -24,6 +24,7 @@ export default function RootLayout({
         name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
       />
+      {/* <link rel="manifest" href="/manifest.json" /> */}
       <body
         className={`${inter.className} bg-[#1D1D1F] min-h-screen overflow-hidden`}
       >
