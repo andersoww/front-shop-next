@@ -10,6 +10,9 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  env: {
+    BASE_URL: process.env.NEXT_URL_PUBLIC_URL,
+  },
 };
 
 module.exports = withPWA(nextConfig);
