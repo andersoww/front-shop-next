@@ -43,15 +43,17 @@ export interface IFile {
   type: string;
 }
 interface IAddressImport {
-  address: string;
-  neighborhood: string;
-  route: string;
-  package: string;
-  cep: string;
+  streetCompleted: string;
+  street: string;
+  address_number: number;
+  district: string;
+  zicode: string;
   city: string;
+  packages: string;
+  route: string;
   referer: string;
-  long: string;
-  lat: string;
+  latitude: string;
+  longitude: string;
 }
 
 interface ImportAddressRouteProps {
@@ -86,16 +88,16 @@ function Card({ add }: { add: IAddressImport }) {
     <div className="card-theme p-4 flex flex-col gap-2 relative h-[400px]">
       <BoxText
         icon={<MapPin className="w-4 h-4 " />}
-        description={add.address}
+        description={add.streetCompleted}
       />
       <BoxText
         title="Bairro:"
-        description={add.neighborhood}
+        description={add.district}
         icon={<Home className="w-4 h-4" />}
       />
       <BoxText
         title="Pacote:"
-        description={add.package}
+        description={add.packages}
         icon={<PackagePlus className="w-5 h-5" />}
         className="bottom-0 absolute right-0 bg-purple-600 p-2 rounded-lg [&>p]:text-lg [&>p]:font-medium"
       />
@@ -113,8 +115,8 @@ function FormFile() {
   const [address, setAddress] = useState<ImportAddressRouteProps>({
     list: [
       {
-        address: "7 de Setembro,200",
-        cep: "14640-000",
+        streetCompleted: "7 de Setembro,200",
+        zicode: "14640-000",
         city: "Morro Agudo",
         route: "Rota 42",
       },
@@ -268,7 +270,7 @@ function FormFile() {
             </div>
             <div className="w-full flex items-center justify-center">
               <p>
-                {address.list[0].city} - {address.list[0].cep}
+                {address.list[0].city} - {address.list[0].zicode}
               </p>
             </div>
           </div>
@@ -318,7 +320,7 @@ function FormFile() {
               >
                 <div className="flex flex-col gap-4 h-[330px] overflow-auto">
                   {address.list
-                    .filter((item) => item.lat && item.long)
+                    .filter((item) => item.latitude && item.longitude)
                     .map((add, index) => {
                       return <Card key={index} add={add} />;
                     })}
@@ -336,7 +338,7 @@ function FormFile() {
               >
                 <div className="flex flex-col gap-4 h-[330px] overflow-auto">
                   {address.list
-                    .filter((item) => !item.lat)
+                    .filter((item) => !item.latitude)
                     .map((add, index) => {
                       return <Card key={index} add={add} />;
                     })}

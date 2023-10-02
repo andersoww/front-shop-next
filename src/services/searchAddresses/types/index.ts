@@ -1,13 +1,15 @@
 interface ISearchAddresses {
-  address: string;
-  neighborhood: string;
-  route: string;
-  package: string;
-  cep: string;
+  streetCompleted: string;
+  street: string;
+  address_number: number;
+  district: string;
+  zicode: string;
   city: string;
+  packages: string;
+  route: string;
   referer: string;
-  long: string;
-  lat: string;
+  latitude: string;
+  longitude: string;
 }
 
 export type { ISearchAddresses };
