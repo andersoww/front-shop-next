@@ -4,6 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Navigation } from "@/components/Navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,9 +29,7 @@ export default function RootLayout({
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
       />
 
-      <body
-        className={`${inter.className} bg-[#1D1D1F] min-h-screen overflow-hidden`}
-      >
+      <body className={`${inter.className} bg-[#1D1D1F]`}>
         <Providers>{children}</Providers>
       </body>
     </html>

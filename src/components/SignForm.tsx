@@ -2,16 +2,16 @@
 
 import { Button } from "@/components/Button";
 import { TextInput } from "@/components/TextInput";
+import { useToast } from "@/context/ToastContext";
+import api from "@/services/ApiClient";
 import { sessions } from "@/services/session";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { setCookie } from "cookies-next";
 import { KeyRound, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { setCookie } from "cookies-next";
-import { useToast } from "@/context/ToastContext";
-import api from "@/services/ApiClient";
 
 const schema = z.object({
   email: z.string().nonempty("E-mail é obrigatório"),
@@ -23,7 +23,7 @@ type SignFormSchema = z.infer<typeof schema>;
 function SignForm() {
   const [isLoading, setIsLoading] = useState(false);
 
-  const { push, refresh } = useRouter();
+  const { push } = useRouter();
   const { addToast } = useToast();
 
   const {
@@ -40,6 +40,7 @@ function SignForm() {
 
       if (response.data && response.result === "success") {
         setCookie("token", response.data.token);
+        setCookie("name", response.data.name);
         addToast({
           title: "Sucesso",
           message: response.message,
@@ -50,7 +51,7 @@ function SignForm() {
             Authorization: `bearer ${response.data.token}`,
           };
         }
-        push("/import");
+        push("/home");
       } else {
         addToast({
           title: "Error",

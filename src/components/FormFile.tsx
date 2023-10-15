@@ -1,7 +1,6 @@
 "use client";
 
 import { Text } from "@/components/Text";
-import { TextInput } from "@/components/TextInput";
 import { useToast } from "@/context/ToastContext";
 import { exportXlsx } from "@/services/exportXlsx";
 import { importAddress } from "@/services/importAddress";
@@ -26,11 +25,11 @@ import {
   MapPin,
   Package,
   PackagePlus,
-  PackageSearch,
   Search,
   Upload,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "./Button";
@@ -85,7 +84,7 @@ function BoxText({
 
 function Card({ add }: { add: IAddressImport }) {
   return (
-    <div className="card-theme p-4 flex flex-col gap-2 relative h-[400px]">
+    <div className="card-theme p-4 w-full flex relative h-full flex-col gap-2">
       <BoxText
         icon={<MapPin className="w-4 h-4 " />}
         description={add.streetCompleted}
@@ -96,15 +95,14 @@ function Card({ add }: { add: IAddressImport }) {
         icon={<Home className="w-4 h-4" />}
       />
       <BoxText
-        title="Pacote:"
-        description={add.packages}
-        icon={<PackagePlus className="w-5 h-5" />}
-        className="bottom-0 absolute right-0 bg-purple-600 p-2 rounded-lg [&>p]:text-lg [&>p]:font-medium"
+        description={add.referer || "Sem conteúdo"}
+        icon={<Info className="w-4 h-4" />}
       />
 
       <BoxText
-        description={add.referer || "Sem conteúdo"}
-        icon={<Info className="w-4 h-4" />}
+        description={add.packages}
+        icon={<PackagePlus className="w-5 h-5" />}
+        className="bg-purple-600 w-fit p-2 rounded-lg [&>p]:text-sm [&>p]:font-medium"
       />
     </div>
   );
@@ -134,6 +132,7 @@ function FormFile() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { addToast } = useToast();
   const { handleSubmit, setValue } = useForm();
+  const { back } = useRouter();
 
   const onDrop = useCallback(
     (acceptedFiles: any[]) => {
@@ -238,13 +237,13 @@ function FormFile() {
   }, [onOpen]);
 
   return (
-    <div className="flex flex-col gap-4 w-full p-4 h-full relative">
+    <div className="flex gap-4 w-full p-4 h-full relative items-center justify-center">
       {show && (
-        <div className="flex flex-col gap-4 h-full">
+        <div className="flex flex-col gap-4 h-full max-w-5xl">
           <div className="flex w-full justify-between">
             <h1 className="text-xl font-bold">{address.list[0].route}</h1>
 
-            <Link href={{ pathname: "/import" }}>
+            <Link href={{ pathname: "/home" }}>
               <ArrowLeft />
             </Link>
           </div>
@@ -277,15 +276,15 @@ function FormFile() {
 
           <Divider />
 
-          <div className="flex w-full flex-col gap-2 mb-12">
-            <TextInput.Root>
+          <div className="flex w-full flex-col gap-2">
+            {/* <TextInput.Root>
               <TextInput.Content>
                 <TextInput.Icon>
                   <PackageSearch />
                 </TextInput.Icon>
                 <TextInput.Input placeholder="Procurar um endereço..." />
               </TextInput.Content>
-            </TextInput.Root>
+            </TextInput.Root> */}
 
             <Tabs
               aria-label="Options"
@@ -302,7 +301,7 @@ function FormFile() {
                   </div>
                 }
               >
-                <div className="flex flex-col gap-4 h-[300px] overflow-auto">
+                <div className="flex flex-wrap gap-4 overflow-auto">
                   {address.list.map((add, index) => {
                     return <Card key={index} add={add} />;
                   })}
@@ -347,7 +346,7 @@ function FormFile() {
             </Tabs>
           </div>
 
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full p-4 flex gap-4">
+          <div className="w-full p-4 flex gap-4">
             <Button
               iconLeft={<Search className="h-4 w-4" />}
               onClick={() => searchAddresses(address)}
@@ -402,7 +401,7 @@ function FormFile() {
                     variant="clear"
                     type="button"
                     iconLeft={<ArrowLeft className="h-4 w-4" />}
-                    onClick={onClose}
+                    onClick={back}
                   >
                     Voltar
                   </Button>

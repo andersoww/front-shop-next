@@ -1,4 +1,5 @@
 "use client";
+
 import { ToastContextProvider } from "@/context/ToastContext";
 import { PropsWithChildren } from "react";
 import { NextUIProvider } from "@nextui-org/react";
